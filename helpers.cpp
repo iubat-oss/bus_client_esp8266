@@ -1,63 +1,82 @@
 #include "helpers.h"
 
-void connect_to_wifi(const char *ssid, const char *password) {
+float progress = 0.0f;
+
+void connect_to_wifi(const char *ssid, const char *password)
+{
   WiFi.begin(ssid, password);
   Serial.print("Connecting to WiFi");
-  while (WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED)
+  {
     delay(500);
     Serial.print(".");
   }
   Serial.println("\nConnected to the WiFi network");
 }
 
-void mqtt_callback(char *topic, byte *payload, unsigned int length) {
+void mqtt_callback(char *topic, byte *payload, unsigned int length)
+{
   Serial.print("Message received on topic: ");
   Serial.print(topic);
   Serial.print("]: ");
-  for (int i = 0; i < length; i++) {
+  for (int i = 0; i < length; i++)
+  {
     Serial.print((char)payload[i]);
   }
   Serial.println();
 }
 
-float get_latitude() {
-  // random latitude
-  return 23.5 + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (0.5)));  // Range: 23.5 to 24.0
+float interpolate(float start, float end, float t)
+{
+  return start + t * (end - start);
 }
 
-float get_longitude() {
-  // random longitude
-  return 90.0 + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (0.5)));  // Range: 90.0 to 90.5
+float get_latitude()
+{
+  return interpolate(START_LATITUDE, END_LATITUDE, progress);
 }
 
-float get_speed() {
+float get_longitude()
+{
+  return interpolate(START_LONGITUDE, END_LONGITUDE, progress);
+}
+
+float get_speed()
+{
   // mock data
-  return 45;
+  return 40.0f;
 }
 
-float get_heading() {
+float get_heading()
+{
   // mock data
-  return 180;
+  return 90.0f;
 }
 
-void sync_time(long gmt_offset_sec, int daylight_offset_sec, const char *ntp_server) {
+void sync_time(long gmt_offset_sec, int daylight_offset_sec, const char *ntp_server)
+{
   configTime(gmt_offset_sec, daylight_offset_sec, ntp_server);
   Serial.print("Waiting for NTP time sync: ");
-  while (time(nullptr) < 8 * 3600 * 2) {
+  while (time(nullptr) < 8 * 3600 * 2)
+  {
     delay(1000);
     Serial.print(".");
   }
   Serial.println("Time synchronized");
   struct tm timeinfo;
-  if (getLocalTime(&timeinfo)) {
+  if (getLocalTime(&timeinfo))
+  {
     Serial.print("Current time: ");
     Serial.println(asctime(&timeinfo));
-  } else {
+  }
+  else
+  {
     Serial.println("Failed to obtain local time");
   }
 }
 
-String get_current_timestamp_ISO8601() {
+String get_current_timestamp_ISO8601()
+{
   time_t now = time(nullptr);
   struct tm timeinfo;
   localtime_r(&now, &timeinfo);

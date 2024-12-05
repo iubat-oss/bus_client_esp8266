@@ -7,43 +7,62 @@
 #include "config.h"
 #include "helpers.h"
 
-
 // WiFi and MQTT client initialization
 BearSSL::WiFiClientSecure espClient;
 PubSubClient mqtt_client(espClient);
 
 void connect_to_mqtt_broker();
-void publish_bus_location(PubSubClient& mqtt_client, const char *topic);
+void publish_bus_location(PubSubClient &mqtt_client, const char *topic);
 
-void setup() {
+void setup()
+{
   Serial.begin(115200);
+
   connect_to_wifi(ssid, password);
-  sync_time(gmt_offset_sec, daylight_offset_sec, ntp_server);  // X.509 validation requires synchronization time
+
+  sync_time(gmt_offset_sec, daylight_offset_sec, ntp_server); // X.509 validation requires synchronization time
+
   mqtt_client.setServer(mqtt_broker, mqtt_port);
   mqtt_client.setCallback(mqtt_callback);
+
   connect_to_mqtt_broker();
 }
 
-void loop() {
-  if (!mqtt_client.connected()) {
+void loop()
+{
+  if (!mqtt_client.connected())
+  {
     connect_to_mqtt_broker();
   }
+
   mqtt_client.loop();
 
   publish_bus_location(mqtt_client, mqtt_topic);
-  delay(3000);
+
+  progress += STEP_INCREMENT;
+  if (progress > 1.0f)
+  {
+    progress = 0.0f;
+  }
+
+  delay(1000);
 }
 
-void connect_to_mqtt_broker() {
+void connect_to_mqtt_broker()
+{
   BearSSL::X509List serverTrustedCA(ca_cert);
   espClient.setTrustAnchors(&serverTrustedCA);
 
-  while (!mqtt_client.connected()) {
+  while (!mqtt_client.connected())
+  {
     String client_id = "esp8266-client-" + String(WiFi.macAddress());
     Serial.printf("Connecting to MQTT Broker as %s.....\n", client_id.c_str());
-    if (mqtt_client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
+    if (mqtt_client.connect(client_id.c_str(), mqtt_username, mqtt_password))
+    {
       Serial.println("Connected to MQTT broker");
-    } else {
+    }
+    else
+    {
       char err_buf[128];
       espClient.getLastSSLError(err_buf, sizeof(err_buf));
       Serial.print("Failed to connect to MQTT broker, rc=");
@@ -56,8 +75,9 @@ void connect_to_mqtt_broker() {
   }
 }
 
-void publish_bus_location(PubSubClient& mqtt_client, const char *topic) {
-  StaticJsonDocument<200> message;
+void publish_bus_location(PubSubClient &mqtt_client, const char *topic)
+{
+  JsonDocument message;
   char payload[200];
 
   message["bus_id"] = bus_id;
@@ -69,10 +89,12 @@ void publish_bus_location(PubSubClient& mqtt_client, const char *topic) {
 
   serializeJson(message, payload);
 
-  if (mqtt_client.publish(topic, payload)) {
+  if (mqtt_client.publish(topic, payload))
+  {
     Serial.println("Published Bus Location");
-  } else {
+  }
+  else
+  {
     Serial.println("Failed to publish Bus location");
   }
 }
-
