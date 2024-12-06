@@ -10,7 +10,7 @@ const float START_LATITUDE = 23.945217;
 const float START_LONGITUDE = 90.382654;
 const float END_LATITUDE = 23.910331;
 const float END_LONGITUDE = 90.397197;
-const float DURATION_SECONDS = 60.0f;
+const float DURATION_SECONDS = 300.0f;
 const float STEP_INCREMENT = 1.0f / (DURATION_SECONDS * 1.0f);
 
 void connect_to_wifi(const char *ssid, const char *password);

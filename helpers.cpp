@@ -43,13 +43,11 @@ float get_longitude()
 
 float get_speed()
 {
-  // mock data
-  return 40.0f;
+  return 120.0f;
 }
 
 float get_heading()
 {
-  // mock data
   return 90.0f;
 }
 
